@@ -21,7 +21,7 @@ class P56Spec extends FunSpec with Matchers {
           ),
           Node('2', Node('5'), Node('4')),
         )
-      )
+      ) shouldBe true
     }
   }
 }
