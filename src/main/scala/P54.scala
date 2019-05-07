@@ -45,8 +45,50 @@ object Tree {
   def symmetricBalancedTrees[T](nodeCount: Int, value: T): List[Tree[T]] = {
     cBalanced(nodeCount, value).filter(_.isSymmetric)
   }
+
+  def hBalanced[T](height: Int, value: T): List[Tree[T]] = height match {
+    case n if n < 1 => List(End)
+    case 1          => List(Node(value))
+    case _          =>
+      val subtreeWithLessThan1Height: List[Tree[T]] = hBalanced(height - 1, value)
+      val subtreeWithLessThan2Height: List[Tree[T]] = hBalanced(height - 2, value)
+      subtreeWithLessThan1Height.flatMap(
+        l => subtreeWithLessThan2Height.flatMap(
+          r => List(
+            Node(value, l, l),
+            Node(value, l, r),
+            Node(value, r, l),
+          )
+        )
+      )
+  }
+
+  // TODO is this same as cBalanced ?
+  def hbalTreesWithNodes[T](nodes: Int, value: T): List[Tree[T]] = ???
+
+  // maximum nodes in height balanced tree with height h
+  def maxHbalNodesFor(height: Int): Int = Math.pow(2, height).toInt - 1
+
+  // minimum nodes in height H
+  def minHbalNodesFor(height: Int): Int = {
+    height match {
+      case 0 => 0
+      case 1 => 1
+      case _ => minHbalNodesFor(height - 1) + minHbalNodesFor(height - 2) + 1
+    }
+  }
+
+  // maximum height H a height-balanced binary tree with N nodes
+  def maxHbalHeightFor(nodes: Int): Int = Stream.from(1).takeWhile(minHbalNodesFor(_) <= nodes).last
+
+  // minimum height H a height-balanced binary tree with N nodes
+  def minHbalHeightFor(nodes: Int): Int = (Math.log(nodes + 1) / Math.log(2)).ceil.toInt
+
 }
 
+//https://cs.stackexchange.com/questions/54171/is-a-balanced-binary-tree-a-complete-binary-tree
+// Difference between complete binary tree, balanced tree (no of nodes: left and right), height balanced tree ( height of left and right)
+// full tree
 
 trait BST[+T] extends Tree[T] {
   def +=[B >: T : Ordering](v: B): BST[B]
