@@ -1,10 +1,17 @@
 sealed trait Tree[+T] {
+  def leafCount: Int
+
+  def leafList: List[T]
+
+  def internalList: List[T]
+
   def isMirrorOf[B](other: Tree[B]): Boolean
 
   def isSymmetric: Boolean
 }
 
 case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
+
   override def toString: String = "T(" + value.toString + " " + left.toString + " " + right.toString + ")"
 
   override def isMirrorOf[B](other: Tree[B]): Boolean = other match {
@@ -13,6 +20,21 @@ case class Node[+T](value: T, left: Tree[T], right: Tree[T]) extends Tree[T] {
   }
 
   override def isSymmetric: Boolean = left.isMirrorOf(right)
+
+  override def leafCount: Int = (left, right) match {
+    case (End, End) => 1
+    case _          => left.leafCount + right.leafCount
+  }
+
+  override def leafList: List[T] = (left, right) match {
+    case (End, End) => List(value)
+    case _          => left.leafList ::: right.leafList
+  }
+
+  override def internalList: List[T] = (left, right) match {
+    case (End, End) => Nil
+    case _          => value :: left.internalList ::: right.internalList
+  }
 }
 
 case object End extends Tree[Nothing] {
@@ -21,6 +43,12 @@ case object End extends Tree[Nothing] {
   override def isMirrorOf[B](other: Tree[B]): Boolean = other == End
 
   override def isSymmetric: Boolean = true
+
+  override val leafCount: Int = 0
+
+  override def leafList: List[Nothing] = Nil
+
+  override def internalList: List[Nothing] = Nil
 }
 
 object Node {
@@ -96,6 +124,8 @@ trait BST[+T] extends Tree[T] {
 
 // how do I avoid this code duplication ?
 case object BSTEnd extends BST[Nothing] {
+  override val leafCount: Int = 0
+
   override def toString = "."
 
   override def isMirrorOf[B](other: Tree[B]): Boolean = other == BSTEnd
@@ -103,6 +133,10 @@ case object BSTEnd extends BST[Nothing] {
   override def isSymmetric: Boolean = true
 
   override def +=[B >: Nothing : Ordering](v: B): BST[B] = BSTNode(v)
+
+  override def leafList: List[Nothing] = Nil
+
+  override def internalList: List[Nothing] = Nil
 }
 
 class BSTNode[+T](value: T, left: BST[T], right: BST[T]) extends Node(value, left, right) with BST[T] {
